@@ -1,0 +1,36 @@
+# -*- coding: utf-8 -*-
+#发送纯文本邮件
+#Time:2018-8-24
+
+#导入发送邮件所需要的模块
+from email.mime.text import MIMEText
+from email.header import Header
+from email import encoders
+from email.utils import parseaddr, formataddr
+from email.mime.multipart import MIMEMultipart
+import smtplib  
+
+def _format_addr(s) :
+    name , addr = parseaddr(s)
+    return formataddr((Header(name,'utf-8').encode(),addr))
+    
+#填写登录账号密码、发送账号
+from_addr=input("登录账号：")
+password=input("账号密码：")
+to_addr=input("发送地址：")   #发送服务器的网址
+smtp_server=input("服务器地址：例如<smtp.163.com>")
+
+#邮件内容
+str=input("输入您要对我说的话：")
+print("正在开启网络传送门....请保证网络畅通")
+msg=MIMEText(str,'plain','utf-8') 
+msg['Prom']=_format_addr('python爱好者 <%s>'% from_addr)
+msg['To']=_format_addr('管理员 <%s>'% to_addr)
+msg['Subject']=Header('来自SMIP的问候...','utf-8').encode()
+
+#通过SMTP发送出去
+server = smtplib.SMTP(smtp_server,25)#SMTP默认端口号是25,j如果不是ssl的话端口是25，其他情况而异
+server.set_debuglevel(1)
+server.login(from_addr,password)
+server.sendmail(from_addr,[to_addr],msg.as_string())
+server.quit()
