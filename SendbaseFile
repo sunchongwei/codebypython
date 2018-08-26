@@ -1,0 +1,59 @@
+# -*- coding: utf-8 -*-
+#练习使用发送邮件
+#Time:2018-8-24
+from email.mime.text import MIMEText
+from email.header import Header
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.utils import parseaddr,formataddr
+from email import encoders
+import smtplib
+def _format_addr(s):
+    #来解析地址
+    name,addr=parseaddr(s)
+    return formataddr((Header(name,'utf-8').encode(),addr))
+
+#本机信息
+from_addr=chongweisun@163.com"
+password="111"
+to_addrList=["1987354223@qq.com"]
+smtp_server="smtp.163.com"
+msg=MIMEMultipart()
+#邮件正文
+print("邮件定向发送器:可添加更多的接收者")
+print("1--添加额外接收者: ")
+print("2--使用默认接收者: ")
+choice=input("添加额外选择; ")
+if choice=='1':
+   to_addrList.append(input("输入邮件地址: "))
+zhaiyao=input("输入文件备注: ")
+text=MIMEText(zhaiyao,'plain','utf-8')
+msg.attach(text)
+msg['From']=_format_addr("实验室<%s>" %from_addr)
+msg['To']=_format_addr("管理员<%s>" %to_addrList[0])
+msg['Subject']=Header('有用的文件','utf-8').encode()  #含有中文的涉及编码问题
+#邮件附件
+#添加附件就是添加MIMEBase 从本地读取一个图片
+#输入文件相关信息
+filePath=input("inputFilePath: ")
+fileName=input("inputFileName: ")
+allPath=filePath+'\\'+fileName
+
+with open(allPath,'rb') as f:
+    #设置附件和文件名
+    mime=MIMEBase('image','jpg',filename=fileName)
+    #加上必要的头信息
+    mime.add_header('Content-Disposition', 'attachment', filename=fileName)
+    mime.add_header('Content-ID','<0>')
+    mime.add_header('X-Attachment-Id', '0')
+    #把附件的内容读进来
+    mime.set_payload(f.read())
+    encoders.encode_base64(mime)
+    msg.attach(mime)
+#导入smtplib，这是负责发送邮件模块
+server=smtplib.SMTP(smtp_server,25)  #端口号25
+server.set_debuglevel(1)
+server.login(from_addr,password)
+server.sendmail(from_addr,to_addrList,msg.as_string())
+server.quit()
