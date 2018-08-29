@@ -1,0 +1,123 @@
+#-*- coding:utf-8 -*-
+#二维码生成软件
+from PIL import Image
+import qrcode 
+import winreg  #导入windows相关模块，功能是查找桌面路径
+from MyQR import myqr
+import os 
+#生成简单的二维码
+def createSimpleQr(str,path):
+    img=qrcode.make(str)
+    img.save(path)
+    img.show()
+
+#用高级方法生成简单二维码
+def createSimpleQr2(str,path):
+    qr=qrcode.QRCode(version=2,error_correction=qrcode.constants.ERROR_CORRECT_L,box_size=10,border=10,)
+    qr.add_data(str)
+    img=qr.make_image()
+    img.save(path)
+    img.show()
+
+#带有logo图案的二维码
+def createLogoQr(str,path,logoPath):
+
+    #生成储部二维码
+     qr=qrcode.QRCode(version=5,error_correction=qrcode.constants.ERROR_CORRECT_H,box_size=8,border=4,)
+     qr.add_data(str)#添加生成二维码的信息
+     qr.make(fit=True)
+
+     #获得image实例并把颜色模式转化为RGBA
+     img=qr.make_image()
+     img=img.convert("RGB")
+     
+     #打开logo文件
+     icon=Image.open(logoPath)
+
+     #计算logo的尺寸
+     img_w,img_h=img.size
+     factor = 4 #默认logo最大设置为图片的1/4
+     size_w=int(img_w/factor)
+     size_h=int(img_h/factor)
+
+     #比较重新设置的logo文件的尺寸
+     icon_w,icon_h=icon.size
+     if icon_w>size_w :
+         icon_w=size_w
+     if icon_h>size_h :
+         icon_h=size_h
+     icon = icon.resize((icon_w,icon_h),Image.ANTIALIAS)
+
+     #计算logo的位置，并复制到二维码图像中
+     w=int((img_w-icon_w)/2)
+     h=int((img_h-icon_h)/2)
+     icon=icon.convert("RGBA")
+     img.paste(icon,(w,h),icon)
+
+     #保存二维码
+     img.save(path)
+
+#得到桌面路径
+def get_desktop():
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+    return winreg.QueryValueEx(key, "Desktop")[0]
+
+#彩图转黑白
+def toBlack(path) :
+    img=Image.open(path)
+    to_img=img.convert("L")
+    to_img.show()
+    save_path=get_desktop()+'\\toblack.jpg'
+    print("保存路径为%s"%(save_path))
+    to_img.save(save_path)
+
+#生成动态效果的二维码
+def createdGIF(str,GIFpath) :
+    myqr.run(
+        words=str, #生成的信息
+        version=1,
+        level='H',
+       picture=GIFpath,
+        colorized=True, #彩色二维码
+        contrast=1.0,
+        brightness=1.0,
+        save_name="2.gif",#保存文件的名字
+        save_dir=get_desktop()    # 控制位置
+        )
+
+
+
+
+#循环打印菜单
+i = True  
+print("使用说明：生成图片默认路径为桌面")
+print("1--生成纯文字二维码")
+print("2--生成纯文字二维码")
+print("3--生成带logo二维码")
+print("4--图片转黑白图")
+print("5--生成动态二维码")
+print("any-其他按键退出")
+while i :
+    choice=input('输入您的选择：')
+    if (choice== '1') :
+        str=input("输入你要生成的信息:")
+        path=input("输入您要存存储的路径")
+        createSimpleQr(str,path)
+    elif (choice == '2') :
+        str=input("输入你要生成的信息:")
+        path=input("输入您要存存储的路径")
+        createSimpleQr2(str,path)
+    elif choice == '3':
+        str=input("输入你要生成的信息:")
+        logopath=input("输入logo文件路径")
+        path=input("输入您要存存储的路径")
+        createLogoQr(str,path,logopath)
+    elif choice=='4' :
+        path=input("请输入图片路径")
+        toBlack(path)
+    elif choice=='5' :
+        str=input("输入要生成的信息")
+        GIFpath=input("输入动图的路径(jpg,gif,png...)")
+        createdGIF(str,GIFpath)
+    else :
+        i=False 
